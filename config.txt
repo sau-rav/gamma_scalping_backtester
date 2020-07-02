@@ -1,0 +1,22 @@
+[Input Data Section]
+data_file_path = ./dataset/FutureAndStraddleData_IN0000000002IS_2020-01-15.csv
+
+[Output Data Section]
+output_file_path = ./output/trade_data.csv
+summary_file_path = ./output/summary_data.csv
+
+[Variable Section]
+rate = 0.069
+strike_price = 12100
+rolling_window_size = 500
+contract_size = 100
+num_call_to_trade = 1
+num_put_to_trade = 1
+iv_tolerence = 0.01
+neg_signal_tolerence = 10
+square_off_count = 20
+vega_max = 200
+vega_min = 20
+
+[Expiry Date Section]
+exp = 
