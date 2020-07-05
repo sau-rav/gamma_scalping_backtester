@@ -23,11 +23,11 @@ for i in range(0, len(onlyfiles)):
     day = int(file_name.split('-')[2])
     if expiry_date[month] == day:
         continue
-    # elif month == 1 and day < 25:
-        # print('Evaluating for {}'.format(file_name))
-        # Path('./output/{}'.format(file_name)).mkdir(parents = True, exist_ok = True)
-        # os.system('python3 main.py ./dataset/{} > ./output/{}/statement.txt'.format(onlyfiles[i], file_name))
-    elif month == 2 and day == 20:
+    elif month == 1 and day < 25:
+        print('Evaluating for {}'.format(file_name))
+        Path('./output/{}'.format(file_name)).mkdir(parents = True, exist_ok = True)
+        os.system('python3 main.py ./dataset/{}'.format(onlyfiles[i], file_name))
+    elif month == 2 and day < 21 and day > 5:
         print('Evaluating for {}'.format(file_name))
         Path('./output/{}'.format(file_name)).mkdir(parents = True, exist_ok = True)
         os.system('python3 main.py ./dataset/{}'.format(onlyfiles[i], file_name))

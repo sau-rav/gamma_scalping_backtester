@@ -24,7 +24,6 @@ VEGA_x_VOL_MIN = int(config.get('Variable Section', 'vega_min'))
 
 # dataset_size = initiateDatabase(ROLLLING_WINDOW_SIZE, STRIKE_PRICE, RISK_FREE_RATE, IV_TOLERENCE)
 dataset_size, STRIKE_PRICE, folder_name = initiateDatabase(sys.argv[1], ROLLLING_WINDOW_SIZE, RISK_FREE_RATE, IV_TOLERENCE) # load size and strike price from the dataset itself
-# dataset_size = ROLLLING_WINDOW_SIZE + 10
 openOutputFile(folder_name)
 
 idx = ROLLLING_WINDOW_SIZE // 3
@@ -73,21 +72,21 @@ for i in range(idx, dataset_size):
         id += 1
 
 closeOutputFile()
-profit = 0
-loss = 0
-countp = 0
-countl = 0
+
+# plotting and overall analysis of positions
+profit, loss = 0, 0
+profit_count, loss_count = 0, 0
 for position in positions:
-    position.plot()
+    # position.plot()
     total_pnl += position.total_pnl
     if position.total_pnl > 0:
         profit += position.total_pnl
-        countp += 1
+        profit_count += 1
     else:
         loss += position.total_pnl
-        countl += 1
+        loss_count += 1
 
 statement_path = './output/statement.csv'
 statement_file = open(statement_path, 'a+') # append mode 
-statement_file.write("{},{},{},{},{},{},{}\n".format(folder_name,countp+countl, profit, countp, loss, countl, total_pnl))
+statement_file.write("{},{},{},{},{},{},{}\n".format(folder_name,profit_count+loss_count, profit, profit_count, loss, loss_count, total_pnl))
 statement_file.close()

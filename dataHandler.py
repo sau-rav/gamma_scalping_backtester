@@ -198,6 +198,11 @@ def plotVega_x_diff():
     plt.xlabel('index')
     plt.ylabel('vega * diff(HV, IV)')
     plt.savefig(current_directory + '/output/{}/graphs/vega_diff(hv_iv).svg'.format(folder_name), format = 'svg', dpi = 1200)
+    plt.clf()
+    plt.plot(data['index'], (data['implied_volatility'] - data['historical_volatility']) * data['vega'])
+    plt.xlabel('index')
+    plt.ylabel('vega * (IV - HV)')
+    plt.savefig(current_directory + '/output/{}/graphs/vega_*(iv-hv).svg'.format(folder_name), format = 'svg', dpi = 1200)
 
 def plotHV_IV():
     global current_directory, folder_name
@@ -233,15 +238,15 @@ def plotTrade(id, indexes, result):
 
     # trade graphs with vega x vol_diff
     plt.clf()
-    plt.plot(data['index'], (data['vega'] * np.abs(data['implied_volatility'] - data['historical_volatility'])), label = 'vega_x_diff(HV, IV)', color = 'yellow')
+    plt.plot(data['index'], (data['vega'] * (data['implied_volatility'] - data['historical_volatility'])), label = 'vega_x_(IV-HV)', color = 'yellow')
 
     clr = ''
     if result == 'profit':
         clr = 'green'
-        plt.plot([data.loc[i, 'index'] for i in indexes], [data.loc[i, 'vega'] * np.abs(data.loc[i, 'implied_volatility'] - data.loc[i, 'historical_volatility']) for i in indexes], color = clr, label = 'profit_trade')
+        plt.plot([data.loc[i, 'index'] for i in indexes], [data.loc[i, 'vega'] * (data.loc[i, 'implied_volatility'] - data.loc[i, 'historical_volatility']) for i in indexes], color = clr, label = 'profit_trade')
     else:
         clr = 'red'
-        plt.plot([data.loc[i, 'index'] for i in indexes], [data.loc[i, 'vega'] * np.abs(data.loc[i, 'implied_volatility'] - data.loc[i, 'historical_volatility']) for i in indexes], color = clr, label = 'loss_trade')
+        plt.plot([data.loc[i, 'index'] for i in indexes], [data.loc[i, 'vega'] * (data.loc[i, 'implied_volatility'] - data.loc[i, 'historical_volatility']) for i in indexes], color = clr, label = 'loss_trade')
     # plt.plot(data['index'], data['implied_volatility'], label = 'iv_calc', color = 'yellow')
     plt.xlabel('index')
     plt.ylabel('vega_x_diff(HV, IV) in decimal')
@@ -249,4 +254,5 @@ def plotTrade(id, indexes, result):
     plt.savefig(current_directory + '/output/{}/graphs/vega/trade-data{}.svg'.format(folder_name, id), format = 'svg', dpi = 1200)
     
     
+
 

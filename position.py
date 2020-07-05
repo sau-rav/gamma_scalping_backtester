@@ -22,8 +22,13 @@ class Position:
         self.BREAK_OFF_VEGA = break_off_vega
 
     def evaluate(self, impl_volatility, hist_volatility, vega, i):
-        if np.abs(impl_volatility - hist_volatility) * vega <= self.BREAK_OFF_VEGA:
-            self.closePosition(i, impl_volatility, hist_volatility)
+        # check by absolute while exit so as to not abrupt signal changes
+        if self.status == 'SHORT':
+            if (impl_volatility - hist_volatility) * vega <= self.BREAK_OFF_VEGA:
+                self.closePosition(i, impl_volatility, hist_volatility)
+        elif self.status == 'LONG':
+            if (impl_volatility - hist_volatility) * vega >= -self.BREAK_OFF_VEGA:
+                self.closePosition(i, impl_volatility, hist_volatility)
         else:
             pnl = self.gamma_scalp.deltaHedge(i)
             if pnl > 0:
@@ -47,4 +52,5 @@ class Position:
 
     def analyze(self):
         return self.total_pnl
+
 
