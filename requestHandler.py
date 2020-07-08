@@ -26,7 +26,7 @@ def openOutputFile(folder_name):
     erase_contents_file.truncate(0)
     erase_contents_file.close()
     summary_file = open(path, 'a+') # append mode
-    summary_file.write("position_id,start_timestamp,end_timestamp,position_taken,entry_iv,entry_hv,entry_diff,exit_iv,exit_hv,exit_diff,total_pnl\n")
+    summary_file.write("position_id,start_timestamp,end_timestamp,position_taken,entry_iv,entry_hv,entry_diff,exit_iv,exit_hv,exit_diff,total_pnl,exit_reason\n")
 
 def closeOutputFile():
     global output_file, summary_file
@@ -91,11 +91,11 @@ def writePositionDataToTradeFile(idx, pos_id, status):
     curr_time = getTimeStamp(idx)
     output_file.write("{},{},{},{},,,,,,,\n".format(idx, pos_id, curr_time, status))
 
-def writeToSummaryFile(pos_id, start_timestamp, end_timestamp, position_taken, entry_iv, entry_hv, exit_iv, exit_hv, total_pnl):
+def writeToSummaryFile(pos_id, start_timestamp, end_timestamp, position_taken, entry_iv, entry_hv, exit_iv, exit_hv, total_pnl, close_signal):
     if total_pnl > 0:
-        summary_file.write("{},{},{},{},{},{},{},{},{},{},{},profit\n".format(pos_id ,start_timestamp, end_timestamp, position_taken, entry_iv, entry_hv, abs(entry_hv - entry_iv), exit_iv, exit_hv, abs(exit_hv - exit_iv), total_pnl))
+        summary_file.write("{},{},{},{},{},{},{},{},{},{},{},{}\n".format(pos_id ,start_timestamp, end_timestamp, position_taken, entry_iv, entry_hv, abs(entry_hv - entry_iv), exit_iv, exit_hv, abs(exit_hv - exit_iv), total_pnl, close_signal))
     else:
-        summary_file.write("{},{},{},{},{},{},{},{},{},{},{},loss\n".format(pos_id, start_timestamp, end_timestamp, position_taken, entry_iv, entry_hv, abs(entry_hv - entry_iv), exit_iv, exit_hv, abs(exit_hv - exit_iv), total_pnl))
+        summary_file.write("{},{},{},{},{},{},{},{},{},{},{},{}\n".format(pos_id, start_timestamp, end_timestamp, position_taken, entry_iv, entry_hv, abs(entry_hv - entry_iv), exit_iv, exit_hv, abs(exit_hv - exit_iv), total_pnl, close_signal))
 
 # openOutputFile()
 # closeOutputFile()

@@ -4,7 +4,7 @@ from gamma import *
 from requestHandler import *
 
 class Position:
-    def __init__(self, id, gamma_object, status, start_iv, start_hv, neg_signal_tolerence, sqr_off_tolerence, break_off_vega, idx):
+    def __init__(self, id, gamma_object, status, start_iv, start_hv, neg_signal_tolerence, sqr_off_tolerence, break_off_vega, max_tolerable_vega, idx):
         self.active = True
         self.id = id
         self.gamma_scalp = gamma_object
@@ -20,37 +20,47 @@ class Position:
         self.NEGATIVE_TOLERENCE = neg_signal_tolerence
         self.SQR_OFF_TOLERENCE = sqr_off_tolerence
         self.BREAK_OFF_VEGA = break_off_vega
+        self.MAX_TOLERABLE_VEGA = max_tolerable_vega
 
     def evaluate(self, impl_volatility, hist_volatility, vega, i):
         # check by absolute while exit so as to not abrupt signal changes
-        if self.status == 'SHORT':
-            if (impl_volatility - hist_volatility) * vega <= self.BREAK_OFF_VEGA:
-                self.closePosition(i, impl_volatility, hist_volatility)
-        elif self.status == 'LONG':
-            if (impl_volatility - hist_volatility) * vega >= -self.BREAK_OFF_VEGA:
-                self.closePosition(i, impl_volatility, hist_volatility)
+        if self.unchartered_territory(impl_volatility, hist_volatility, vega, i):
+            self.closePosition(i, impl_volatility, hist_volatility, 'DEVIATION_BREAK_OFF')
         else:
-            pnl = self.gamma_scalp.deltaHedge(i)
-            if pnl > 0:
-                self.profit_count += 1
-            elif pnl < 0:
-                self.loss_count += 1
-        self.data_point_indexes.append(i)
+            if self.status == 'SHORT':
+                if (impl_volatility - hist_volatility) * vega <= self.BREAK_OFF_VEGA:
+                    self.closePosition(i, impl_volatility, hist_volatility, 'VEGA_BREAK_OFF')
+            elif self.status == 'LONG':
+                if (impl_volatility - hist_volatility) * vega >= -self.BREAK_OFF_VEGA:
+                    self.closePosition(i, impl_volatility, hist_volatility, 'VEGA_BREAK_OFF')
+            else:
+                pnl = self.gamma_scalp.deltaHedge(i)
+                if pnl > 0:
+                    self.profit_count += 1
+                elif pnl < 0:
+                    self.loss_count += 1
+            self.data_point_indexes.append(i)
+       
 
-    def closePosition(self, i, impl_volatility, hist_volatility):
+    def closePosition(self, i, impl_volatility, hist_volatility, close_signal):
         self.total_pnl = self.gamma_scalp.closePosition(i)
         self.active = False
         writePositionDataToTradeFile(i, self.id, self.status + ' EXIT')
-        writeToSummaryFile(self.id, self.entry_time_stamp, getTimeStamp(i), self.status, self.entry_iv, self.entry_hv, impl_volatility, hist_volatility, self.total_pnl)
+        writeToSummaryFile(self.id, self.entry_time_stamp, getTimeStamp(i), self.status, self.entry_iv, self.entry_hv, impl_volatility, hist_volatility, self.total_pnl, close_signal)
         self.data_point_indexes.append(i)
 
     def plot(self):
+        # plot the trade data (plotted in dataHnadler function)
         if self.total_pnl >= 0:
             plotTrade(self.id, self.data_point_indexes, 'profit')
         else:
             plotTrade(self.id, self.data_point_indexes, 'loss')
 
-    def analyze(self):
-        return self.total_pnl
-
-
+    def unchartered_territory(self, impl_volatility, hist_volatility, vega, i):
+        if self.status == 'SHORT':
+            if (impl_volatility - hist_volatility) * vega >= self.MAX_TOLERABLE_VEGA:
+                return True
+        elif self.status == 'LONG':
+            if (impl_volatility - hist_volatility) * vega <= -self.MAX_TOLERABLE_VEGA:
+                return True
+        return False

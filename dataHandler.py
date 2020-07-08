@@ -19,12 +19,12 @@ def initiateDatabase(path_from_main, rolling_wind_size, RISK_FREE_RATE, IV_TOLER
     # files required for initiating database, all config related data present in config.txt
     config = configparser.ConfigParser()
     config.readfp(open(r'config.txt'))
-    path = config.get('Input Data Section', 'data_file_path')
-    path = path_from_main
+    path = config.get('Input Data Section', 'data_file_path') # if single file needs to be run we can provide that file name in config.txt
+    path = path_from_main # in case of automation.py we need to provide file name as agrument to main
 
     global data, current_directory, folder_name
     # derive folder for storage from path name (change accordingly)
-    folder_name = path.split('_')[2].split('.')[0]
+    folder_name = path.split('_')[2].split('.')[0] # file name specific function
 
     # for graphical data 
     current_directory = os.getcwd()
@@ -41,7 +41,7 @@ def initiateDatabase(path_from_main, rolling_wind_size, RISK_FREE_RATE, IV_TOLER
     data = pd.read_csv(path)
     data.columns = ['time', 'symbol', 'timestamp', 'call_ask_iv', 'call_bid_iv', 'put_ask_iv', 'put_bid_iv', 'call_ask', 'call_bid', 'put_ask', 'put_bid', 'call_vega', 'put_vega', 'call_delta', 'put_delta', 'future_avg', 'future_ask', 'future_bid', 'strike', 'misc1', 'misc2', 'misc3', 'misc4', 'misc5']
     # functions specific to dataset currently in use
-    datasetSpecificFunction() # any preprocessing that needs to be done according to structure of dataset
+    datasetSpecificFunction() # any preprocessing that needs to be done according to structure of dataset if dataset structure changes this needs to be changed
 
     convertToNumeric() # convert all data to numeric
     STRIKE_PRICE = data.loc[0, 'strike'] # load strike from dataset
@@ -51,7 +51,7 @@ def initiateDatabase(path_from_main, rolling_wind_size, RISK_FREE_RATE, IV_TOLER
     calculateVega(data.shape[0], STRIKE_PRICE, RISK_FREE_RATE)
     plotHV_IV()
     plotVega_x_diff()
-    return data.shape[0], STRIKE_PRICE, folder_name
+    return data.shape[0], STRIKE_PRICE, folder_name # returning folder name so as to create output folder with name same as data file name
 
 def datasetSpecificFunction():
     # removing misc columns
@@ -125,7 +125,7 @@ def getCurrentTime(idx):
     sec = sec.split('.')[0]
     # res = datetime.datetime(int(year), int(month), int(day), int(hour), int(min), int(sec)).time()
     res = datetime.datetime(int(year), int(month), int(day), int(hour), int(min), int(sec))
-    return convertTimeToIST(res)
+    return convertTimeToIST(res) # convert to IST if time not in IST (else expiration time calculation will yeild bad values)
 
 def getImpliedVolatility(idx):
     # val = data.loc[idx, 'iv_from_dataset']
@@ -254,5 +254,4 @@ def plotTrade(id, indexes, result):
     plt.savefig(current_directory + '/output/{}/graphs/vega/trade-data{}.svg'.format(folder_name, id), format = 'svg', dpi = 1200)
     
     
-
 
