@@ -26,6 +26,7 @@ class Position:
         self.total_pnl = 0 # total pnl at end
         self.BREAK_OFF_VEGA = break_off_vega
         self.MAX_TOLERABLE_VEGA = max_tolerable_vega
+        self.futures = abs(gamma_object.total_futures)
 
     def evaluate(self, impl_volatility, hist_volatility, vega, i):
         """
@@ -48,12 +49,12 @@ class Position:
             elif self.status == 'LONG':
                 if (impl_volatility - hist_volatility) * vega >= -self.BREAK_OFF_VEGA:
                     self.closePosition(i, impl_volatility, hist_volatility, 'VEGA_BREAK_OFF')
-            else:
-                pnl = self.gamma_scalp.deltaHedge(i)
-                if pnl > 0:
-                    self.profit_count += 1
-                elif pnl < 0:
-                    self.loss_count += 1
+        if self.active:
+            pnl = self.gamma_scalp.deltaHedge(i)
+            if pnl > 0:
+                self.profit_count += 1
+            elif pnl < 0:
+                self.loss_count += 1
             self.data_point_indexes.append(i)
        
 

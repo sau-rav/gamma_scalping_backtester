@@ -67,7 +67,7 @@ for i in range(idx, dataset_size):
     # generate signal and take position according to strategy
     if impl_volatility < hist_volatility and abs(impl_volatility - hist_volatility) * vega > VEGA_x_VOL_MAX: 
         STATUS = 'LONG'
-        writePositionDataToTradeFile(idx, id, STATUS + ' START')
+        writePositionDataToTradeFile(i, id, STATUS + ' START')
         gamma_scalp = GammaScalping('ABC', STRIKE_PRICE, STRIKE_PRICE, T, T, NUM_CALL, NUM_PUT, SZ_CONTRACT, RISK_FREE_RATE, curr_date, STATUS, i, IV_TOLERENCE, id)
         position_object = Position(id, gamma_scalp, STATUS, impl_volatility, hist_volatility, VEGA_x_VOL_MIN, VEGA_x_VOL_TOLERABLE, i)
         positions.append(position_object)
@@ -75,7 +75,7 @@ for i in range(idx, dataset_size):
 
     elif impl_volatility > hist_volatility and abs(impl_volatility - hist_volatility) * vega > VEGA_x_VOL_MAX:
         STATUS = 'SHORT'
-        writePositionDataToTradeFile(idx, id, STATUS + ' START')
+        writePositionDataToTradeFile(i, id, STATUS + ' START')
         gamma_scalp = GammaScalping('ABC', STRIKE_PRICE, STRIKE_PRICE, T, T, NUM_CALL, NUM_PUT, SZ_CONTRACT, RISK_FREE_RATE, curr_date, STATUS, i, IV_TOLERENCE, id)
         position_object = Position(id, gamma_scalp, STATUS, impl_volatility, hist_volatility, VEGA_x_VOL_MIN, VEGA_x_VOL_TOLERABLE, i)
         positions.append(position_object)
