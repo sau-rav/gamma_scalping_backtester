@@ -6,6 +6,7 @@ from dataHandler import *
 from functions import *
 from requestHandler import * 
 
+# load the required parameters from the config file
 config = configparser.ConfigParser()
 config.readfp(open(r'config.txt'))
 
@@ -16,22 +17,30 @@ SZ_CONTRACT = int(config.get('Variable Section', 'contract_size'))
 NUM_CALL = int(config.get('Variable Section', 'num_call_to_trade'))
 NUM_PUT = int(config.get('Variable Section', 'num_put_to_trade'))
 IV_TOLERENCE = float(config.get('Variable Section', 'iv_tolerence'))
-NEG_SIGNAL_TOLERENCE = int(config.get('Variable Section', 'neg_signal_tolerence')) # count of negative signal that will be tolerated, after this reverse position will be taken
-SQUARE_OFF_COUNT = int(config.get('Variable Section', 'square_off_count'))
 VEGA_x_VOL_MAX = int(config.get('Variable Section', 'vega_max')) # entry vega * diff(volatility)
 VEGA_x_VOL_MIN = int(config.get('Variable Section', 'vega_min')) # exit vega * diff(volatility)
 VEGA_x_VOL_TOLERABLE = 2 * VEGA_x_VOL_MAX
 
-# dataset_size = initiateDatabase(ROLLLING_WINDOW_SIZE, STRIKE_PRICE, RISK_FREE_RATE, IV_TOLERENCE)
-dataset_size, STRIKE_PRICE, folder_name = initiateDatabase(sys.argv[1], ROLLLING_WINDOW_SIZE, RISK_FREE_RATE, IV_TOLERENCE) # load size and strike price from the dataset itself
+# load expiry date, database and open output file
+loadExpiryDates()
+dataset_size = 0
+STRIKE_PRICE = 0 
+folder_name = ''
+print('Loading database...')
+if len(sys.argv) > 1:
+    dataset_size, STRIKE_PRICE, folder_name = initiateDatabase(ROLLLING_WINDOW_SIZE, RISK_FREE_RATE, IV_TOLERENCE, sys.argv[1]) # load size and strike price from the dataset itself
+else:
+    dataset_size, STRIKE_PRICE, folder_name = initiateDatabase(ROLLLING_WINDOW_SIZE, RISK_FREE_RATE, IV_TOLERENCE, None)
 openOutputFile(folder_name)
+print('Evaluating for {}'.format(folder_name))
 
+# initialise parameters for the model
 idx = ROLLLING_WINDOW_SIZE // 3 # starting from index from where we trust the data after HV, IV caluclation on window size of : ROLLING_WINDOW_SIZE
 gamma_scalp = None
 position_object = None
-positions = [] # list of position objects
+positions = [] # list of position objects that the model will initiate
 total_pnl = 0
-id = 0
+id = 0 # id for position objects
 
 for i in range(idx, dataset_size):
     hist_volatility = getHistoricalVolatility(i) * 100 # in percent format
@@ -60,7 +69,7 @@ for i in range(idx, dataset_size):
         STATUS = 'LONG'
         writePositionDataToTradeFile(idx, id, STATUS + ' START')
         gamma_scalp = GammaScalping('ABC', STRIKE_PRICE, STRIKE_PRICE, T, T, NUM_CALL, NUM_PUT, SZ_CONTRACT, RISK_FREE_RATE, curr_date, STATUS, i, IV_TOLERENCE, id)
-        position_object = Position(id, gamma_scalp, STATUS, impl_volatility, hist_volatility, NEG_SIGNAL_TOLERENCE, SQUARE_OFF_COUNT, VEGA_x_VOL_MIN, VEGA_x_VOL_TOLERABLE, i)
+        position_object = Position(id, gamma_scalp, STATUS, impl_volatility, hist_volatility, VEGA_x_VOL_MIN, VEGA_x_VOL_TOLERABLE, i)
         positions.append(position_object)
         id += 1
 
@@ -68,7 +77,7 @@ for i in range(idx, dataset_size):
         STATUS = 'SHORT'
         writePositionDataToTradeFile(idx, id, STATUS + ' START')
         gamma_scalp = GammaScalping('ABC', STRIKE_PRICE, STRIKE_PRICE, T, T, NUM_CALL, NUM_PUT, SZ_CONTRACT, RISK_FREE_RATE, curr_date, STATUS, i, IV_TOLERENCE, id)
-        position_object = Position(id, gamma_scalp, STATUS, impl_volatility, hist_volatility, NEG_SIGNAL_TOLERENCE, SQUARE_OFF_COUNT, VEGA_x_VOL_MIN, VEGA_x_VOL_TOLERABLE, i)
+        position_object = Position(id, gamma_scalp, STATUS, impl_volatility, hist_volatility, VEGA_x_VOL_MIN, VEGA_x_VOL_TOLERABLE, i)
         positions.append(position_object)
         id += 1
 
@@ -78,7 +87,7 @@ closeOutputFile()
 profit, loss = 0, 0
 profit_count, loss_count = 0, 0
 for position in positions:
-    # position.plot()
+    # position.plot() # plot the trade data if required
     total_pnl += position.total_pnl
     if position.total_pnl > 0:
         profit += position.total_pnl

@@ -6,8 +6,29 @@ from requestHandler import *
 from functions import *
 
 class GammaScalping:
+    """
+    Class definition to construct and monitor gamma scalping object
+    
+    Parameters :
+    symbol (string) : The symbol of the asset which is under consideration
+    call_strike (float) : Strike price of call option bought / sold
+    put_strike (float) : Strike price of put option bought / sold
+    call_expiry (float) : Time till expiration of call option expressed in years
+    put_expiry (float) : Time till expiration of put option expressed in years
+    num_contracts_call (int) : number of contracts of call bought / sold
+    num_contracts_put (int) : number of contracts of put bought / sold
+    contr_size (int) : Contract size of the asset
+    risk_free_rate (float) : Risk free rate in market in decimal (0, 1)
+    curr_date (datetime) : Date on which object was initialised
+    gamma_position (string) : 'LONG' / 'SHORT' Position which is taken
+    init_idx (int) : Index according to the database on which object was initialised
+    iv_tol (float) : Maximum tolerable difference between the actual option premium and premium using calculated volatility
+    pos_id (int) : Position ID for the gamma_scalp object (id of position under which this object was initialised)
+        
+    """
     def __init__(self, symbol, call_strike, put_strike, call_expiry, put_expiry, num_contracts_call, num_contracts_put, contr_size, risk_free_rate, curr_date, gamma_position, init_idx, iv_tol, pos_id):
         self.s_symbol = symbol
+        self.pos_id = pos_id
         self.start_timestamp = getTimeStamp(init_idx)
         self.c_strike = call_strike # strike price of put option
         self.p_strike = put_strike # strike price of call option
@@ -24,10 +45,19 @@ class GammaScalping:
         self.total_futures = 0 # total number of futures in hand, will hedge using futures
         self.future_balance = 0 
         self.delta_tolerence = 0.5
-        self.pos_id = pos_id
         self.deltaHedge(init_idx)
 
     def optionBalanceHelperFunction(self, idx, signal):
+        """
+        Function to find option balance at given index, helps to find out the profit / loss if the option position is closed at current index
+        
+        Parameters :
+        
+
+        Returns : 
+
+
+        """
         if signal == 'ENTER':
             if self.g_position == 'LONG':
                 return -self.getOptionsCurrentCost(idx, 'ask')
@@ -39,14 +69,36 @@ class GammaScalping:
             elif self.g_position == 'SHORT':
                 return -self.getOptionsCurrentCost(idx, 'ask')
 
+
     def getOptionsCurrentCost(self, init_idx, type_of_price):
+        """
+
+
+        Parameters :
+        
+
+        Returns :
+        
+            
+        """
         call_premium = getOptionPremium(init_idx, 'call', type_of_price)
         put_premium = getOptionPremium(init_idx, 'put', type_of_price)
 
         bal = call_premium * self.c_contracts * self.contract_size + put_premium * self.p_contracts * self.contract_size
         return bal
 
+
     def calcDelta(self, idx):
+        """
+
+
+        Parameters :
+        
+
+        Returns :
+        
+            
+        """
         spot_price = getSpotPrice(idx, self.rate, 'avg') # mid price of bid ask
         sigma = getImpliedVolatility(idx)
         # C = getOptionPremium(idx, 'call', 'avg')
@@ -69,7 +121,18 @@ class GammaScalping:
             delta_value = self.total_futures - call_delta * self.c_contracts * self.contract_size - put_delta * self.p_contracts * self.contract_size
         return delta_value
 
+
     def deltaHedge(self, idx):
+        """
+
+
+        Parameters :
+        
+
+        Returns :
+        
+            
+        """
         # updating c_expiry, p_expiry according to currdate and curr time
         self.updateTimeTillExpiration(idx)
 
@@ -94,7 +157,18 @@ class GammaScalping:
             delta += buy_quantity
         return total_pnl
 
+
     def closePosition(self, idx):
+        """
+
+
+        Parameters :
+        
+
+        Returns :
+        
+            
+        """
         self.updateTimeTillExpiration(idx)
         delta = self.calcDelta(idx)
         option_balance_current = self.optionBalanceHelperFunction(idx, 'EXIT')
@@ -106,7 +180,18 @@ class GammaScalping:
             total_pnl = buyRequest(self.pos_id, 'EXIT', -self.total_futures, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
         return total_pnl
 
+
     def updateTimeTillExpiration(self, idx):
+        """
+
+
+        Parameters :
+        
+
+        Returns :
+        
+            
+        """
         curr_date = getCurrentDate(idx)
         curr_time = getCurrentTime(idx)
         self.c_expiry = ((self.c_expiry_date - curr_date).days + 1 - convertMinutesToDays(curr_time)) / 365

@@ -1,9 +1,9 @@
 [Input Data Section]
-data_file_path = ./dataset/FutureAndStraddleData_IN0000000002IS_2020-01-15.csv
+data_file_path = ./dataset/FutureAndStraddleData_IN0000000002IS_2020-01-07.csv
 
 [Output Data Section]
-output_file_path = ./output/trade_data.csv
-summary_file_path = ./output/summary_data.csv
+trade_data_file_name = trade_data.csv
+summary_file_name = summary_data.csv
 
 [Variable Section]
 rate = 0.069
@@ -13,10 +13,8 @@ contract_size = 100
 num_call_to_trade = 1
 num_put_to_trade = 1
 iv_tolerence = 0.01
-neg_signal_tolerence = 10
-square_off_count = 20
 vega_max = 200
 vega_min = 20
 
 [Expiry Date Section]
-exp = 
+exp = 31, 28, 31, 30, 29, 30
