@@ -412,97 +412,85 @@ gamma.py
 -------------------------------------------------------------------------------------------------------------------------
 Help on class GammaScalping in module gamma:
 
-class GammaScalping(builtins.object)
- |  Class definition to construct and monitor gamma scalping object
- |  
- |  Parameters :
- |  symbol (string) : The symbol of the asset which is under consideration
- |  call_strike (float) : Strike price of call option bought / sold
- |  put_strike (float) : Strike price of put option bought / sold
- |  call_expiry (float) : Time till expiration of call option expressed in years
- |  put_expiry (float) : Time till expiration of put option expressed in years
- |  num_contracts_call (int) : number of contracts of call bought / sold
- |  num_contracts_put (int) : number of contracts of put bought / sold
- |  contr_size (int) : Contract size of the asset
- |  risk_free_rate (float) : Risk free rate in market in decimal (0, 1)
- |  curr_date (datetime) : Date on which object was initialised
- |  gamma_position (string) : 'LONG' / 'SHORT' Position which is taken
- |  init_idx (int) : Index according to the database on which object was initialised
- |  iv_tol (float) : Maximum tolerable difference between the actual option premium and premium using calculated volatility
- |  pos_id (int) : Position ID for the gamma_scalp object (id of position under which this object was initialised)
- |  
- |  option_value_traded (float) : Total amount of option value traded for calculation of transaction cost
- |  future_valur_traded (float) : Total amount of future value traded for calculation of transaction cost
- |  
- |  Methods defined here:
- |  
- |  __init__(self, symbol, call_strike, put_strike, call_expiry, put_expiry, num_contracts_call, num_contracts_put, contr_size, risk_free_rate, curr_date, gamma_position, init_idx, iv_tol, pos_id)
- |      Initialize self.  See help(type(self)) for accurate signature.
- |  
- |  calcDelta(self, idx)
- |      Used to calculate delta for the position (for this particular gamma_scalp object)
- |      
- |      Parameters :
- |      idx (int) : Index according to the dataset for which delta needs to be calculated
- |      
- |      Returns :
- |      float : Delta value for the position
- |  
- |  closePosition(self, idx)
- |      Used for closing the position
- |      
- |      Parameters :
- |      idx (int) : Index according to the dataset for where position needs to be closed
- |      
- |      Returns :
- |      float : Total profit / loss after closing the position
- |  
- |  deltaHedge(self, idx)
- |      Used to calculate delta, check if delta is away from zero and perform buying and selling to bring delta close to zero
- |      
- |      Parameters :
- |      idx (int) : Index according to the dataset for which delta hedging needs to be done
- |      
- |      Returns :
- |      float : Total profit or loss if the position is closed at given index
- |  
- |  getOptionsCurrentCost(self, idx, type_of_price)
- |      Extraction of premium for the call and put option from the dataset 
- |      
- |      Parameters :
- |      idx (int) : Index according to the dataset for which the call and put premium needs to be evaluated
- |      type_of_price (string) : 'bid', 'ask' or 'avg' according to which type of price is required
- |      
- |      Returns :
- |      float : Option premium sum for all calls and puts in hand
- |  
- |  optionBalanceHelperFunction(self, idx, signal)
- |      Function to find option balance at given index, helps to find out the profit / loss if the option position is closed at current index
- |      
- |      Parameters :
- |      idx (int) : Index according to the dataset where the balance of the options need to be evaluated
- |      signal (string) : 'ENTER' / 'EXIT' depending on for whether the balance needs to be calculated for entry into position or exit from the position
- |      
- |      Returns : 
- |      float : Balance of options in hand for the specified signal
- |  
- |  updateTimeTillExpiration(self, idx)
- |      Used to update time till expitation for the call option and put option expiry, which is used later for delta calculation
- |      
- |      Parameters :
- |      idx (int) : Index according to the dataset which needs to be accounted for time update
- |      
- |      Returns :
- |      void
- |  
- |  ----------------------------------------------------------------------
- |  Data descriptors defined here:
- |  
- |  __dict__
- |      dictionary for instance variables (if defined)
- |  
- |  __weakref__
- |      list of weak references to the object (if defined)
+class GammaScalping
+    Class definition to construct and monitor gamma scalping object
+    
+    Parameters :
+    symbol (string) : The symbol of the asset which is under consideration
+    call_strike (float) : Strike price of call option bought / sold
+    put_strike (float) : Strike price of put option bought / sold
+    call_expiry (float) : Time till expiration of call option expressed in years
+    put_expiry (float) : Time till expiration of put option expressed in years
+    num_contracts_call (int) : number of contracts of call bought / sold
+    num_contracts_put (int) : number of contracts of put bought / sold
+    contr_size (int) : Contract size of the asset
+    risk_free_rate (float) : Risk free rate in market in decimal (0, 1)
+    curr_date (datetime) : Date on which object was initialised
+    gamma_position (string) : 'LONG' / 'SHORT' Position which is taken
+    init_idx (int) : Index according to the database on which object was initialised
+    iv_tol (float) : Maximum tolerable difference between the actual option premium and premium using calculated volatility
+    pos_id (int) : Position ID for the gamma_scalp object (id of position under which this object was initialised)
+    
+    option_value_traded (float) : Total amount of option value traded for calculation of transaction cost
+    future_valur_traded (float) : Total amount of future value traded for calculation of transaction cost
+    
+Methods defined here:
+    
+calcDelta(self, idx)
+    Used to calculate delta for the position (for this particular gamma_scalp object)
+    
+    Parameters :
+    idx (int) : Index according to the dataset for which delta needs to be calculated
+    
+    Returns :
+    float : Delta value for the position
+
+closePosition(self, idx)
+    Used for closing the position
+    
+    Parameters :
+    idx (int) : Index according to the dataset for where position needs to be closed
+    
+    Returns :
+    float : Total profit / loss after closing the position
+
+deltaHedge(self, idx)
+    Used to calculate delta, check if delta is away from zero and perform buying and selling to bring delta close to zero
+    
+    Parameters :
+    idx (int) : Index according to the dataset for which delta hedging needs to be done
+    
+    Returns :
+    float : Total profit or loss if the position is closed at given index
+
+getOptionsCurrentCost(self, idx, type_of_price)
+    Extraction of premium for the call and put option from the dataset 
+    
+    Parameters :
+    idx (int) : Index according to the dataset for which the call and put premium needs to be evaluated
+    type_of_price (string) : 'bid', 'ask' or 'avg' according to which type of price is required
+    
+    Returns :
+    float : Option premium sum for all calls and puts in hand
+
+optionBalanceHelperFunction(self, idx, signal)
+    Function to find option balance at given index, helps to find out the profit / loss if the option position is closed at current index
+    
+    Parameters :
+    idx (int) : Index according to the dataset where the balance of the options need to be evaluated
+    signal (string) : 'ENTER' / 'EXIT' depending on for whether the balance needs to be calculated for entry into position or exit from the position
+    
+    Returns : 
+    float : Balance of options in hand for the specified signal
+
+updateTimeTillExpiration(self, idx)
+    Used to update time till expitation for the call option and put option expiry, which is used later for delta calculation
+    
+    Parameters :
+    idx (int) : Index according to the dataset which needs to be accounted for time update
+    
+    Returns :
+    void
 
 main.py
 -------------------------------------------------------------------------------------------------------------------------
@@ -512,77 +500,65 @@ position.py
 -------------------------------------------------------------------------------------------------------------------------
 Help on class Position in module position:
 
-class Position(builtins.object)
- |  Class definition to construct and monitor position that is taken at any instant
- |  
- |  Parameters :
- |  id (int) : The id for this position object so that it can be identified uniquely
- |  gamma_object (Gamma Scalping object) : The underlying gamma scalping object for the position
- |  status (string) : 'LONG' / 'SHORT' depending on the position which is taken
- |  start_iv (float) : Implied Volatility value at start of the position
- |  start_hv (float) : Historical Volatility value at start of the position
- |  break_off_vega (float) : Value below / above which the position needs to be exited
- |  max_tolerable_vega (float) : Max value of parameter Vega * (IV - HV) that can be tolerated if the movements of opposite of what we expect
- |  idx (int) : Index according to the dataset where the position has benn taken
- |  
- |  Methods defined here:
- |  
- |  __init__(self, id, gamma_object, status, start_iv, start_hv, break_off_vega, max_tolerable_vega, idx)
- |      Initialize self.  See help(type(self)) for accurate signature.
- |  
- |  closePosition(self, i, impl_volatility, hist_volatility, close_signal)
- |      Function for closing the position by calling close for the gamma scalping object of the position
- |      
- |      Parameters :
- |      i (int) : Index according to the dataset where evaluation needs to be done
- |      impl_volatility (float) : Implied Volatility at the index where evaluation needs to be done
- |      hist_volatility (float) : Historical Volatilitiy at the index where evaluation needs to be done
- |      close_signal (string) : The reason due to which this position is being closed
- |      
- |      Returns :
- |      void
- |  
- |  evaluate(self, impl_volatility, hist_volatility, vega, i)
- |      Function of evaluate the gamma scalping object of the position at new index, check if hedging is to be performed or the position needs to be closed according to the parameter value
- |      
- |      Parameters :
- |      impl_volatility (float) : Implied Volatility at the index where evaluation needs to be done
- |      hist_volatility (float) : Historical Volatilitiy at the index where evaluation needs to be done
- |      vega (float) : Vega value at the index where evaluation needs to be done
- |      i (int) : Index according to the dataset where evaluation needs to be done    
- |      
- |      Returns :
- |      void
- |  
- |  plot(self)
- |      Function to plot the trade points for the position
- |      
- |      Parameters :
- |      (void)
- |      
- |      Returns :
- |      void
- |  
- |  unchartered_territory(self, impl_volatility, hist_volatility, vega, i)
- |      Function to check if the deviation from expected move if too large and exit the position accordingly
- |      
- |      Parameters :
- |      impl_volatility (float) : Implied Volatility at the index where checking needs to be done
- |      hist_volatility (float) : Historical Volatilitiy at the index where checking needs to be done
- |      vega (float) : Vega value at the index where checking needs to be done
- |      i (int) : Index according to the dataset where checking needs to be done
- |      
- |      Returns :
- |      boolean : True if the deviation is too much, False if not
- |  
- |  ----------------------------------------------------------------------
- |  Data descriptors defined here:
- |  
- |  __dict__
- |      dictionary for instance variables (if defined)
- |  
- |  __weakref__
- |      list of weak references to the object (if defined)
+class Position
+    Class definition to construct and monitor position that is taken at any instant
+    
+    Parameters :
+    id (int) : The id for this position object so that it can be identified uniquely
+    gamma_object (Gamma Scalping object) : The underlying gamma scalping object for the position
+    status (string) : 'LONG' / 'SHORT' depending on the position which is taken
+    start_iv (float) : Implied Volatility value at start of the position
+    start_hv (float) : Historical Volatility value at start of the position
+    break_off_vega (float) : Value below / above which the position needs to be exited
+    max_tolerable_vega (float) : Max value of parameter Vega * (IV - HV) that can be tolerated if the movements of opposite of what we expect
+    idx (int) : Index according to the dataset where the position has benn taken
+    
+Methods defined here:
+    
+closePosition(self, i, impl_volatility, hist_volatility, close_signal)
+    Function for closing the position by calling close for the gamma scalping object of the position
+    
+    Parameters :
+    i (int) : Index according to the dataset where evaluation needs to be done
+    impl_volatility (float) : Implied Volatility at the index where evaluation needs to be done
+    hist_volatility (float) : Historical Volatilitiy at the index where evaluation needs to be done
+    close_signal (string) : The reason due to which this position is being closed
+    
+    Returns :
+    void
+
+evaluate(self, impl_volatility, hist_volatility, vega, i)
+    Function of evaluate the gamma scalping object of the position at new index, check if hedging is to be performed or the position needs to be closed according to the parameter value
+    
+    Parameters :
+    impl_volatility (float) : Implied Volatility at the index where evaluation needs to be done
+    hist_volatility (float) : Historical Volatilitiy at the index where evaluation needs to be done
+    vega (float) : Vega value at the index where evaluation needs to be done
+    i (int) : Index according to the dataset where evaluation needs to be done    
+    
+    Returns :
+    void
+
+plot(self)
+    Function to plot the trade points for the position
+    
+    Parameters :
+    (void)
+    
+    Returns :
+    void
+
+unchartered_territory(self, impl_volatility, hist_volatility, vega, i)
+    Function to check if the deviation from expected move if too large and exit the position accordingly
+    
+    Parameters :
+    impl_volatility (float) : Implied Volatility at the index where checking needs to be done
+    hist_volatility (float) : Historical Volatilitiy at the index where checking needs to be done
+    vega (float) : Vega value at the index where checking needs to be done
+    i (int) : Index according to the dataset where checking needs to be done
+    
+    Returns :
+    boolean : True if the deviation is too much, False if not
 
 requestHandler.py
 -------------------------------------------------------------------------------------------------------------------------
