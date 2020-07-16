@@ -75,6 +75,7 @@ def sellRequest(pos_id, action, quantity, idx, delta, total_futures, future_bala
 
     if action == 'EXIT'
     float : Total PnL after closing this position at current index
+    float : Balance change in futures by buying specified quantity at current market price (at current index)
 
     """
     price = getSpotPriceFuture(idx, 'bid')
@@ -100,7 +101,7 @@ def sellRequest(pos_id, action, quantity, idx, delta, total_futures, future_bala
     if action == 'HEDGE':
         return [price * quantity, total_pnl]
     else:
-        return total_pnl
+        return [total_pnl, price * quantity]
 
 
 def buyRequest(pos_id, action, quantity, idx, delta, total_futures, future_balance, option_balance_init, option_balance_current):
@@ -124,6 +125,7 @@ def buyRequest(pos_id, action, quantity, idx, delta, total_futures, future_balan
 
     if action == 'EXIT'
     float : Total PnL after closing this position at current index
+    float : Balance change in futures by buying specified quantity at current market price (at current index)
 
     """
     price = getSpotPriceFuture(idx, 'ask')
@@ -149,7 +151,7 @@ def buyRequest(pos_id, action, quantity, idx, delta, total_futures, future_balan
     if action == 'HEDGE':
         return [-price * quantity, total_pnl]
     else:
-        return total_pnl
+        return [total_pnl, price * quantity]
 
 
 def writePositionDataToTradeFile(idx, pos_id, status):

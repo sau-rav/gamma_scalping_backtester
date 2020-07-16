@@ -24,6 +24,9 @@ class GammaScalping:
     init_idx (int) : Index according to the database on which object was initialised
     iv_tol (float) : Maximum tolerable difference between the actual option premium and premium using calculated volatility
     pos_id (int) : Position ID for the gamma_scalp object (id of position under which this object was initialised)
+    
+    option_value_traded (float) : Total amount of option value traded for calculation of transaction cost
+    future_valur_traded (float) : Total amount of future value traded for calculation of transaction cost 
         
     """
     def __init__(self, symbol, call_strike, put_strike, call_expiry, put_expiry, num_contracts_call, num_contracts_put, contr_size, risk_free_rate, curr_date, gamma_position, init_idx, iv_tol, pos_id):
@@ -44,7 +47,9 @@ class GammaScalping:
         self.option_balance_initial = self.optionBalanceHelperFunction(init_idx, 'ENTER') # take bid or ask price according to position while entering into the position
         self.total_futures = 0 # total number of futures in hand, will hedge using futures
         self.future_balance = 0 
-        self.delta_tolerence = 0.5
+        self.delta_tolerence = 1.5
+        self.option_value_traded = abs(self.option_balance_initial)
+        self.future_value_traded = 0
         self.deltaHedge(init_idx)
 
     def optionBalanceHelperFunction(self, idx, signal):
@@ -52,10 +57,11 @@ class GammaScalping:
         Function to find option balance at given index, helps to find out the profit / loss if the option position is closed at current index
         
         Parameters :
-        
+        idx (int) : Index according to the dataset where the balance of the options need to be evaluated
+        signal (string) : 'ENTER' / 'EXIT' depending on for whether the balance needs to be calculated for entry into position or exit from the position
 
         Returns : 
-
+        float : Balance of options in hand for the specified signal
 
         """
         if signal == 'ENTER':
@@ -70,19 +76,20 @@ class GammaScalping:
                 return -self.getOptionsCurrentCost(idx, 'ask')
 
 
-    def getOptionsCurrentCost(self, init_idx, type_of_price):
+    def getOptionsCurrentCost(self, idx, type_of_price):
         """
-
+        Extraction of premium for the call and put option from the dataset 
 
         Parameters :
-        
+        idx (int) : Index according to the dataset for which the call and put premium needs to be evaluated
+        type_of_price (string) : 'bid', 'ask' or 'avg' according to which type of price is required
 
         Returns :
-        
+        float : Option premium sum for all calls and puts in hand
             
         """
-        call_premium = getOptionPremium(init_idx, 'call', type_of_price)
-        put_premium = getOptionPremium(init_idx, 'put', type_of_price)
+        call_premium = getOptionPremium(idx, 'call', type_of_price)
+        put_premium = getOptionPremium(idx, 'put', type_of_price)
 
         bal = call_premium * self.c_contracts * self.contract_size + put_premium * self.p_contracts * self.contract_size
         return bal
@@ -90,13 +97,13 @@ class GammaScalping:
 
     def calcDelta(self, idx):
         """
-
+        Used to calculate delta for the position (for this particular gamma_scalp object)
 
         Parameters :
-        
+        idx (int) : Index according to the dataset for which delta needs to be calculated
 
         Returns :
-        
+        float : Delta value for the position
             
         """
         spot_price = getSpotPrice(idx, self.rate, 'avg') # mid price of bid ask
@@ -124,13 +131,13 @@ class GammaScalping:
 
     def deltaHedge(self, idx):
         """
-
+        Used to calculate delta, check if delta is away from zero and perform buying and selling to bring delta close to zero
 
         Parameters :
-        
+        idx (int) : Index according to the dataset for which delta hedging needs to be done
 
         Returns :
-        
+        float : Total profit or loss if the position is closed at given index
             
         """
         # updating c_expiry, p_expiry according to currdate and curr time
@@ -147,6 +154,7 @@ class GammaScalping:
             [balance_change, total_pnl] = sellRequest(self.pos_id, 'HEDGE', sell_quantity, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
             self.future_balance += balance_change
             self.total_futures -= sell_quantity
+            self.future_value_traded += abs(balance_change)
             delta -= sell_quantity
         elif delta < 0 - self.delta_tolerence:
             # initiate buy request
@@ -154,42 +162,45 @@ class GammaScalping:
             [balance_change, total_pnl] = buyRequest(self.pos_id, 'HEDGE', buy_quantity, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
             self.future_balance += balance_change
             self.total_futures += buy_quantity
+            self.future_value_traded += abs(balance_change)
             delta += buy_quantity
         return total_pnl
 
 
     def closePosition(self, idx):
         """
-
+        Used for closing the position
 
         Parameters :
-        
+        idx (int) : Index according to the dataset for where position needs to be closed
 
         Returns :
-        
+        float : Total profit / loss after closing the position
             
         """
         self.updateTimeTillExpiration(idx)
         delta = self.calcDelta(idx)
         option_balance_current = self.optionBalanceHelperFunction(idx, 'EXIT')
+        self.option_value_traded += abs(option_balance_current)
 
         total_pnl = 0
         if self.total_futures > 0:
-            total_pnl = sellRequest(self.pos_id, 'EXIT', self.total_futures, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
+            [total_pnl, value_traded] = sellRequest(self.pos_id, 'EXIT', self.total_futures, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
         else: 
-            total_pnl = buyRequest(self.pos_id, 'EXIT', -self.total_futures, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
+            [total_pnl, value_traded] = buyRequest(self.pos_id, 'EXIT', -self.total_futures, idx, delta, self.total_futures, self.future_balance, self.option_balance_initial, option_balance_current)
+        self.future_value_traded += abs(value_traded)
         return total_pnl
 
 
     def updateTimeTillExpiration(self, idx):
         """
-
+        Used to update time till expitation for the call option and put option expiry, which is used later for delta calculation
 
         Parameters :
-        
+        idx (int) : Index according to the dataset which needs to be accounted for time update
 
         Returns :
-        
+        void
             
         """
         curr_date = getCurrentDate(idx)
